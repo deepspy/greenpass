@@ -9,6 +9,7 @@ from pathlib import Path
 
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, ec
+from cryptography.hazmat.backends import default_backend
 from cryptography.exceptions import InvalidSignature
 from PIL import Image
 from pyzbar import pyzbar
@@ -99,7 +100,7 @@ class GreenPassVerifier(object):
         if ct == 1:
             digest = self.payload.decode().encode("utf8")
         elif ct == 2:
-            h = hashes.Hash(hashes.SHA256())
+            h = hashes.Hash(hashes.SHA256(), backend=default_backend())
             h.update(self.payload)
             digest = h.finalize()
         return digest
@@ -122,7 +123,7 @@ class GreenPassVerifier(object):
         ]
         for cert, method in certs:
             with open(cert, "rb") as f:
-                k = serialization.load_pem_public_key(f.read())
+                k = serialization.load_pem_public_key(f.read(), backend=default_backend())
                 try:
                     k.verify(self.signature, self.digest, *method)
                     click.secho("✅ Valid signature!", fg="green", bold=True)
